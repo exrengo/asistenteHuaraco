@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cabañas Alberdi - Asistente Virtual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Gama de colores terracota/salmón */
+        :root {
+            --color-primary-dark: #a94d43; 
+            --color-secondary-red: #cb685e; 
+            --color-accent-light-red: #e0a097; 
+            --color-light-grey: #e8b9b2; 
+            --color-background-light: #f7f0ef; 
+            --vh: 1vh; /* Fallback para la altura */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-background-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+             /* Corrección para iOS: usa la variable --vh que se calculará con JS */
+            min-height: calc(var(--vh, 1vh) * 100);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .mobile-app-container {
+            background-color: #ffffff;
+            border-radius: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 420px;
+            /* Corrección para iOS: usa la variable --vh */
+            height: calc(var(--vh, 1vh) * 90);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            -webkit-animation: fadeIn 0.5s ease-out;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @-webkit-keyframes fadeIn {
+            from { opacity: 0; -webkit-transform: translateY(20px); }
+            to { opacity: 1; -webkit-transform: translateY(0); }
+        }
+
+        .app-header {
+            background-color: var(--color-secondary-red);
+            color: #ffffff;
+            padding: 1.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top-left-radius: 2rem;
+            border-top-right-radius: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .app-logo-text {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 1.5rem;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            text-shadow: 0px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .chat-area {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch; /* Mejora de scroll en iOS */
+        }
+        .chat-area > .message {
+            margin-bottom: 0.75rem; /* Reemplazo de 'gap' para compatibilidad */
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 0.85rem 1.15rem;
+            border-radius: 1.5rem;
+            word-wrap: break-word;
+            -webkit-animation: slideIn 0.3s ease-out;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @-webkit-keyframes slideIn {
+            from { opacity: 0; -webkit-transform: translateY(10px); }
+            to { opacity: 1; -webkit-transform: translateY(0); }
+        }
+        
+        .message.user {
+            background-color: var(--color-primary-dark);
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.5rem;
+        }
+
+        .message.assistant {
+            background-color: var(--color-background-light);
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.5rem;
+        }
+        
+        .message.assistant.place-list-container {
+            max-width: 100%;
+            background-color: transparent;
+            padding: 0;
+            box-shadow: none;
+        }
+
+        .message.assistant a {
+            color: var(--color-secondary-red);
+            font-weight: 500;
+        }
+        
+        .message.assistant .whatsapp-contact {
+            display: block;
+            margin-top: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            -webkit-transition: all 0.2s ease;
+            transition: all 0.2s ease;
+        }
+        
+        .message.assistant .whatsapp-fabricio {
+            background-color: #25D366;
+            color: white;
+        }
+        
+        .message.assistant .whatsapp-daiana {
+            background-color: #075E54;
+            color: white;
+        }
+        
+        .message.assistant .whatsapp-contact:hover {
+            -webkit-transform: scale(1.05);
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+        @-webkit-keyframes blink { 50% { opacity: 0; } }
+        .typing-indicator .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--color-primary-dark);
+            border-radius: 50%;
+            opacity: 0.7;
+            -webkit-animation: blink 1.4s infinite;
+            animation: blink 1.4s infinite;
+        }
+        .typing-indicator .dot-1 { -webkit-animation-delay: 0s; animation-delay: 0s; }
+        .typing-indicator .dot-2 { -webkit-animation-delay: 0.2s; animation-delay: 0.2s; }
+        .typing-indicator .dot-3 { -webkit-animation-delay: 0.4s; animation-delay: 0.4s; }
+
+        .input-area {
+            padding: 1rem;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            background-color: #ffffff;
+        }
+
+        .input-area input {
+            flex-grow: 1;
+            padding: 0.85rem 1.25rem;
+            border: 1px solid #dcdcdc;
+            border-radius: 2rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            -webkit-transition: all 0.2s ease-in-out;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .input-area input:focus {
+            border-color: var(--color-secondary-red);
+            box-shadow: 0 0 0 3px rgba(203, 104, 94, 0.2);
+        }
+
+        .input-area button {
+            background-color: var(--color-secondary-red);
+            color: #ffffff;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            -webkit-transition: background-color 0.3s ease, -webkit-transform 0.2s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-left: 0.75rem; /* Reemplazo de 'gap' */
+        }
+
+        .input-area button:hover {
+            background-color: var(--color-primary-dark);
+            -webkit-transform: translateY(-2px);
+            transform: translateY(-2px);
+        }
+        .input-area button:active {
+            -webkit-transform: translateY(0);
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .suggestion-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0.75rem;
+            justify-content: center;
+            border-top: 1px solid #f0f0f0;
+            background-color: #ffffff;
+        }
+        .suggestion-buttons > .suggestion-button {
+            margin: 0.3rem; /* Reemplazo de 'gap' */
+        }
+
+        .suggestion-button {
+            background-color: var(--color-light-grey);
+            color: var(--color-primary-dark);
+            padding: 0.7rem 1.1rem;
+            border-radius: 2rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            -webkit-transition: all 0.2s ease;
+            transition: all 0.2s ease;
+            font-family: 'DM Sans', sans-serif;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .suggestion-button:hover {
+            background-color: var(--color-accent-light-red);
+            -webkit-transform: translateY(-2px);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .suggestion-button.main-menu-button {
+            background-color: var(--color-secondary-red);
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .suggestion-button.main-menu-button:hover {
+            background-color: var(--color-primary-dark);
+        }
+
+        .bottom-navigation {
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem 0;
+            border-top: 1px solid #e0e0e0;
+            background-color: #ffffff;
+            border-bottom-left-radius: 2rem;
+            border-bottom-right-radius: 2rem;
+            box-shadow: 0 -5px 15px -5px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--color-primary-dark);
+            font-size: 0.7rem;
+            cursor: pointer;
+            -webkit-transition: color 0.3s ease, -webkit-transform 0.2s ease;
+            transition: color 0.3s ease, transform 0.2s ease;
+            font-family: 'DM Sans', sans-serif;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+        }
+
+        .nav-item i {
+            font-size: 1.4rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-item:hover {
+            color: var(--color-secondary-red);
+            -webkit-transform: translateY(-2px);
+            transform: translateY(-2px);
+        }
+
+        .place-item {
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: flex-start;
+            border: 1px solid #eee;
+        }
+        .place-item .icon {
+            margin-right: 1rem; /* Reemplazo de 'gap' */
+        }
+
+        .place-item .icon {
+            font-size: 1.8rem;
+            color: var(--color-secondary-red);
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background-color: rgba(203, 104, 94, 0.1);
+        }
+
+        .place-item .details {
+            flex-grow: 1;
+        }
+
+        .place-item h4 {
+            font-weight: 600;
+            color: var(--color-primary-dark);
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .place-item p {
+            font-size: 0.85rem;
+            color: #333;
+            line-height: 1.4;
+            margin: 0.5rem 0;
+        }
+        
+        .place-item .rating {
+            font-size: 0.8rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+        }
+        .place-item .rating .stars {
+            color: #FFD700;
+            margin-right: 0.2rem;
+        }
+
+        .place-item .actions {
+            display: flex;
+            margin-top: 0.75rem;
+        }
+        .place-item .actions > * {
+            margin-right: 0.5rem; /* Reemplazo de 'gap' */
+        }
+
+        .place-item .action-btn {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 9999px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .place-item .action-btn i {
+            margin-right: 0.3rem; /* Reemplazo de 'gap' */
+        }
+
+        .place-item .map-link {
+            background-color: var(--color-background-light);
+            color: var(--color-primary-dark);
+        }
+        .place-item .map-link:hover {
+            background-color: var(--color-light-grey);
+        }
+
+        .place-item .call-link {
+            background-color: #D5F5E3;
+            color: #186A3B;
+        }
+        .place-item .call-link:hover {
+            background-color: #ABEBC6;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-app-container">
+        <div class="app-header">
+            <span class="app-logo-text">CABAÑAS ALBERDI</span>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            </div>
+
+        <div class="suggestion-buttons" id="suggestionButtons">
+            </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Escribí tu pregunta..." class="focus:ring-2 focus:ring-red-700">
+            <button id="sendButton" aria-label="Enviar mensaje"><i class="fas fa-paper-plane"></i></button>
+        </div>
+
+        <div class="bottom-navigation">
+            <div class="nav-item" id="navProject">
+                <i class="fas fa-home"></i>
+                <span>El Complejo</span>
+            </div>
+            <div class="nav-item" id="navMap">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Mapa</span>
+            </div>
+            <div class="nav-item" id="navPlaces">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Lugares</span>
+            </div>
+            <div class="nav-item" id="navWhatsapp">
+                <i class="fab fa-whatsapp"></i>
+                <span>Contacto</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- UBICACIÓN BASE Y FUNCIONES ---
+        const CABANAS_ALBERDI_LAT = -34.6261;
+        const CABANAS_ALBERDI_LON = -68.3735;
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radio de la tierra en km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distancia en km
+        }
+
+        function getGoogleMapsLink(name) {
+             return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(name + ", San Rafael, Mendoza");
+        }
+        
+        function formatRating(rating) {
+            if (!rating || rating === "No disponible") {
+                return '<div class="rating"><span class="text-xs text-gray-500">Sin calificación</span></div>';
+            }
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            let starsHtml = '';
+            for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fas fa-star"></i>';
+            if (hasHalfStar) starsHtml += '<i class="fas fa-star-half-alt"></i>';
+            for (let i = 0; i < emptyStars; i++) starsHtml += '<i class="far fa-star"></i>';
+            
+            return `<div class="rating"><span class="stars">${starsHtml}</span> <span>${rating}</span></div>`;
+        }
+
+        function generatePlaceHtml(place, iconClass) {
+            let extraInfo = '<div class="extra-info mt-2">';
+            if (place.description) {
+                extraInfo += `<p>${place.description}</p>`;
+            }
+            if (place.distancia) {
+                extraInfo += `<p class="text-sm text-gray-600 font-semibold"><i class="fas fa-road fa-fw mr-2 text-gray-400"></i>A ${place.distancia}</p>`;
+            }
+            extraInfo += '</div>';
+
+            let callButton = '';
+            if (place.telefono && place.telefono !== "No disponible") {
+                callButton = `<a href="tel:${place.telefono}" class="action-btn call-link"><i class="fas fa-phone"></i> Llamar</a>`;
+            }
+            
+            let mapLink = getGoogleMapsLink(place.name);
+
+            return `
+                <div class="place-item">
+                    <div class="icon"><i class="${iconClass}"></i></div>
+                    <div class="details">
+                        <h4>${place.name}</h4>
+                        ${formatRating(place.rating)}
+                        ${extraInfo}
+                        <div class="actions">
+                            <a href="${mapLink}" target="_blank" class="action-btn map-link">
+                                <i class="fas fa-map-marker-alt"></i> Ver en mapa
+                            </a>
+                            ${callButton}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- BASES DE DATOS DEL ASISTENTE ---
+        const assistantResponses = {
+            "hola": "¡Hola! Soy tu asistente virtual de Cabañas Alberdi. Estoy aquí para ayudarte a que tengas una excelente estadía. ¿En qué te puedo asistir?",
+            "nuestro proyecto": `
+                <p class="font-bold text-lg mb-2">Bienvenido a Cabañas Alberdi</p>
+                <p class="mb-3">Disfruta de la tranquilidad y el confort en nuestras cabañas totalmente equipadas. Un lugar ideal para descansar y conectar con la naturaleza de San Rafael.</p>
+                <p class="font-bold">El complejo cuenta con:</p>
+                <ul class="list-disc ml-5">
+                    <li>Piscina al aire libre</li>
+                    <li>Cabañas totalmente equipadas</li>
+                    <li>Asadores individuales</li>
+                    <li>Espacios verdes</li>
+                </ul>
+            `,
+            "reglamento": "¡Claro! Para garantizar el bienestar de todos, hemos establecido algunas normas. ¿Sobre qué tema específico te gustaría consultar?",
+            "reglamento_horarios": "El <span class='font-bold'>Check-in</span> es a partir de las 14:00 hs y el <span class='font-bold'>Check-out</span> es hasta las 10:00 hs. Si necesitas modificar estos horarios, puedes consultar por disponibilidad y costos adicionales.",
+            "reglamento_agua": "Sí, el agua es potable. Se puede consumir sin ningún inconveniente.",
+            "reglamento_ruidos": "Se debe respetar el descanso de los demás huéspedes, evitando ruidos molestos entre las 23:00 y las 09:00 hs.",
+            "reglamento_pileta": "El horario de la piscina es de 10:00 a 22:00 hs. Recuerda que los menores de 12 años deben estar con un adulto, y no se permite música, pelotas ni alimentos (salvo mate y agua).",
+            "reglamento_visitas": "No se permite el ingreso de visitas sin previo aviso a la administración.",
+            "reglamento_fumar": "No está permitido fumar dentro de las cabañas. Tampoco se permite el uso de velas o cualquier elemento con fuego.",
+            "reglamento_wifi": `
+                <p class="font-bold text-lg mb-2">WiFi Cabañas 🌐</p>
+                <p>Aquí tienes las redes y contraseñas disponibles en el complejo:</p>
+                <ul class="list-disc ml-5 mt-3 text-sm leading-relaxed">
+                    <li class="mt-2"><span class="font-bold">Cabañas 1 y 2:</span>
+                        <ul class="list-circle ml-5">
+                            <li>Red: <span class="font-bold text-gray-700">TP-LINK_85EC</span></li>
+                            <li>Contraseña: <span class="font-bold text-gray-700">63996852</span></li>
+                        </ul>
+                    </li>
+                    <li class="mt-2"><span class="font-bold">Cabañas 3 y 4:</span>
+                        <ul class="list-circle ml-5">
+                            <li>Red: <span class="font-bold text-gray-700">TP-LINK_AE06 EXT</span></li>
+                            <li>Contraseña: <span class="font-bold text-gray-700">19358581</span></li>
+                        </ul>
+                    </li>
+                    <li class="mt-2"><span class="font-bold">Cabañas 5 y 6:</span>
+                        <ul class="list-circle ml-5">
+                            <li>Red: <span class="font-bold text-gray-700">TP-LINK_AE06</span></li>
+                            <li>Contraseña: <span class="font-bold text-gray-700">19358581</span></li>
+                        </ul>
+                    </li>
+                </ul>
+            `,
+            "reglamento_completo": `
+                <p class="font-bold text-lg mb-2">Reglamento Completo</p>
+                <p class="font-bold text-base mt-4 mb-2">🏡 INGRESO Y SALIDA</p>
+                <ul class="list-disc ml-5 text-sm leading-relaxed">
+                    <li><span class="font-bold">Check-in:</span> A partir de las 14:00 hs.</li>
+                    <li><span class="font-bold">Check-out:</span> Hasta las 10:00 hs.</li>
+                </ul>
+                <p class="font-bold text-base mt-4 mb-2">📜 NORMAS GENERALES</p>
+                <ul class="list-disc ml-5 text-sm leading-relaxed">
+                    <li>Respetar el descanso evitando ruidos molestos entre las 23:00 y las 09:00 hs.</li>
+                    <li>La cabaña debe ser entregada en las mismas condiciones de orden y limpieza.</li>
+                    <li>El agua es potable.</li>
+                </ul>
+                <p class="font-bold text-base mt-4 mb-2">🏊‍♂️ USO DE LA PISCINA</p>
+                <ul class="list-disc ml-5 text-sm leading-relaxed mb-3">
+                    <li>Horario: de 10:00 hs a 22:00 hs.</li>
+                    <li>Menores de 12 años deben estar siempre acompañados por un adulto.</li>
+                    <li>No se permite el ingreso de bebidas y alimentos (excepto mate y agua).</li>
+                    <li>No se permite poner música.</li>
+                </ul>
+                <p class="font-bold text-base mt-4 mb-2">⚠️ SEGURIDAD Y RESTRICCIONES</p>
+                <ul class="list-disc ml-5 text-sm leading-relaxed">
+                    <li>No está permitido fumar dentro de las cabañas.</li>
+                    <li>No se permite el uso de velas o elementos que generen fuego.</li>
+                    <li>No se permite el ingreso de visitas sin previo aviso.</li>
+                </ul>
+            `,
+            "mapa": `<div class="p-2"><p>Serás redirigido al mapa del complejo.</p><meta http-equiv="refresh" content="2;url=https://www.google.com/maps/place/Caba%C3%B1as+Alberdi/@-34.6477631,-68.2694533,16z/data=!4m6!3m5!1s0x9679a918913e8739:0x944503ac6b38ab7a!8m2!3d-34.6448364!4d-68.2735595!16s%2Fg%2F11pyydk6vx?entry=ttu&g_ep=EgoyMDI1MDYzMC4wIKXMDSoASAFQAw%3D%3D" /></div>`,
+            "contacto": `
+                <p>¡Claro! ¿Con quién deseas comunicarte?</p>
+                <a href='https://wa.me/5492604086903' target='_blank' class='whatsapp-contact whatsapp-daiana'>
+                    <i class='fab fa-whatsapp'></i> Chatear con Daiana
+                </a>
+                <a href='https://wa.me/5492604687371' target='_blank' class='whatsapp-contact whatsapp-fabricio'>
+                    <i class='fab fa-whatsapp'></i> Chatear con Fabricio
+                </a>
+            `,
+            "lugares sugeridos": "¡Claro! San Rafael tiene mucho para ofrecer. ¿Qué tipo de lugar te interesa?",
+            "default": "Disculpa, no te entendí. ¿Podrías reformular tu pregunta o elegir una de las opciones sugeridas?",
+        };
+        
+        const topicKeywordMap = {
+            "reglamento_wifi": ["wifi", "wi-fi", "internet", "contraseña", "clave"],
+            "reglamento_fumar": ["fumar", "cigarrillo", "fuego", "velas"],
+            "reglamento_horarios": ["horario", "check-in", "check in", "checkout", "check-out", "salida", "ingreso", "entrada", "hora"],
+            "reglamento_agua": ["agua", "potable", "tomar"],
+            "reglamento_ruidos": ["ruido", "musica", "música", "molestos", "descanso"],
+            "reglamento_pileta": ["pileta", "piscina"],
+            "reglamento_visitas": ["visitas", "invitados", "amigos"],
+            "reglamento_completo": ["reglamento", "reglas", "normas"],
+            "contacto": ["contacto", "llamar", "whatsapp", "teléfono"],
+            "lugares sugeridos": ["pasear", "visitar", "cerca", "recomenda"],
+            "bares": ["bar", "bares", "cerveza", "tragos", "copas", "noche"],
+            "restaurantes": ["restaurante", "restaurantes", "cenar", "almorzar", "parrilla"],
+            "heladerias": ["helado", "heladeria", "heladerías"],
+            "comida para llevar": ["delivery", "llevar", "pedir comida", "rotiseria"],
+            "bodegas": ["bodega", "bodegas", "vino", "vinos", "degustación"],
+            "proveedurias y supermercados": ["super", "supermercado", "comprar", "proveeduría"]
+        };
+
+        const placesData = {
+            "bares": [
+                { name: "Rawson Bar", lat: -34.615, lon: -68.333, rating: 4.2, telefono: "No disponible", description: "Bar con una propuesta variada, ideal para la noche." },
+                { name: "Biero", lat: -34.615, lon: -68.332, rating: 4.2, telefono: "02604109942", description: "Cervecería con un ambiente animado en el centro." },
+                { name: "Bahrü - Enjoy and share", lat: -34.615, lon: -68.331, rating: 4.2, telefono: "2604625273", description: "Restobar para compartir un buen momento." },
+                { name: "San Telmo Resto Bar", lat: -34.618, lon: -68.336, rating: 4.4, telefono: "No disponible", description: "Combina gastronomía con shows en vivo." },
+                { name: "ATHENA Cervecería", lat: -34.606, lon: -68.331, rating: 4.4, telefono: "No disponible", description: "Otra excelente opción para los amantes de la cerveza artesanal." },
+                { name: "CORBO WINE BAR", lat: -34.614, lon: -68.330, rating: 4.5, telefono: "No disponible", description: "Un lugar especializado para degustar vinos de la región." }
+            ],
+            "restaurantes": [
+                { name: "Miquelino Restó", lat: -34.614, lon: -68.329, rating: 4.3, telefono: "02604427448", description: "Restaurante con menú variado y opciones para celíacos." },
+                { name: "El Viejo Bodegón", lat: -34.617, lon: -68.333, rating: 4.4, telefono: "02604433333", description: "Un clásico de San Rafael, conocido por sus carnes y pastas." },
+                { name: "Bonnys Pizza", lat: -34.620, lon: -68.340, rating: 4.3, telefono: "02604430000", description: "Pizzería ubicada en la zona céntrica." },
+                { name: "ADRA PARRILLA RESTO", lat: -34.636, lon: -68.384, rating: 4.6, telefono: "+54 260 402-4382" },
+                { name: "Lomiteros", lat: -34.612, lon: -68.326, rating: 4.4, telefono: "+54 260 441-0211" }
+            ],
+            "comida para llevar": [
+                { name: "La Criolla Almacén de Comidas", lat: -34.625, lon: -68.345, rating: 4.8, telefono: "02604433111", description: "Comidas caseras y artesanales para llevar." },
+                { name: "Rotisería los Nonos", lat: -34.623, lon: -68.342, rating: 4.4, telefono: "+54 260 433-3389" },
+                { name: "Mí casa de comida", lat: -34.621, lon: -68.351, rating: 4.5, telefono: "+54 260 453-4465" },
+                { name: "Guillen Comidas", lat: -34.616, lon: -68.339, rating: 4.6, telefono: "+54 260 450-3700" }
+            ],
+            "bodegas": [
+                { name: "Bodega Alfredo Roca", lat: -34.685, lon: -68.423, rating: 4.8, telefono: "2604497250", description: "Bodega familiar con más de 100 años de historia, ofrece visitas y degustaciones." },
+                { name: "Bodega Goyenechea", lat: -34.580, lon: -68.473, rating: 4.7, telefono: "2604617294", description: "Fundada en 1868, es una de las más antiguas y tradicionales de la región." },
+                { name: "Bodega Chayee Bourras", lat: -34.545, lon: -68.330, rating: 4.9, telefono: "No disponible", description: "Bodega boutique enfocada en la producción de vinos de alta calidad." },
+                { name: "Finca & Bodega La Abeja", lat: -34.628, lon: -68.338, rating: 4.8, telefono: "+54 9 260 467-1836", description: "La bodega más antigua de San Rafael, inaugurada en 1883." },
+                { name: "Bodegas Bianchi", lat: -34.536, lon: -68.318, rating: 4.7, telefono: "+54 260 481-6963", description: "Una de las bodegas más grandes y reconocidas del país." }
+            ],
+            "heladerias": [
+                { name: "El Pinito Helados Artesanales", lat: -34.616, lon: -68.334, rating: 4.6, telefono: "02604435688", description: "Empresa familiar reconocida por sus helados artesanales."},
+                { name: "La Delicia Del Boulevard", lat: -34.606, lon: -68.330, rating: 4.5, telefono: "02604435558", description: "Fundada en 1930, ofrece más de 70 sabores, pastelería y cafetería."},
+                { name: "Helados La Trova", lat: -34.610, lon: -68.331, rating: 4.6, telefono: "02604434975", description: "Helado artesanal por excelencia en la ciudad."},
+                { name: "Cremé Heladería y Pastelería", lat: -34.612, lon: -68.328, rating: 4.6, telefono: "02604423854", description: "Ofrece helados premium y pastelería preparados con recetas exclusivas."}
+            ],
+            "proveedurias y supermercados": [
+                { name: "MINIMERCADO Y CARNICERÍA RULI", lat: -34.630, lon: -68.368, rating: 4.2, telefono: "No disponible" },
+                { name: "Minimarket Mari~Meli", lat: -34.631, lon: -68.369, rating: 4.5, telefono: "No disponible" },
+                { name: "Eco Supermercados", lat: -34.607, lon: -68.344, rating: 4.1, telefono: "No disponible", description:"Cadena de supermercados con varias sucursales en la ciudad." },
+                { name: "Vea (Mitre)", lat: -34.617, lon: -68.332, rating: 4.2, telefono: "No disponible", description:"Sucursal céntrica del conocido supermercado."}
+            ],
+            "lugares para conocer": [
+                { name: "Laberinto de Borges", lat: -34.532, lon: -68.441, rating: 4.6, telefono: "+54 260 463-8780" },
+                { name: "Fleur de la vie. Finca Agroecologica", lat: -34.568, lon: -68.396, rating: 4.8, telefono: "No disponible" },
+                { name: "Plaza San Martín", lat: -34.614, lon: -68.332, rating: 4.4, description: "Plaza principal de la ciudad de San Rafael." }
+            ],
+            "actividades al aire libre": [
+                { name: "Rc Aventuras Kayak Trekking", lat: -34.792, lon: -68.599, rating: 4.9, telefono: "+54 260 484-9523" }
+            ],
+            "lugares emblematicos": [
+                { name: "Cañón del Atuel", lat: -34.873, lon: -68.583, rating: 4.8, description: "Una impresionante maravilla natural formada por el río Atuel." },
+                { name: "Dique Valle Grande", lat: -34.799, lon: -68.449, rating: 4.7, description: "Un embalse imponente rodeado de montañas, ideal para actividades acuáticas." },
+                { name: "Villa 25 de Mayo", lat: -34.589, lon: -68.472, rating: 4.5, description: "Sitio fundacional de San Rafael, un pintoresco pueblo colonial." },
+                { name: "Museo de Historia Natural de San Rafael", lat: -34.708, lon: -68.455, rating: 4.5, description: "Institución que resguarda el patrimonio histórico y cultural." }
+            ]
+        };
+
+        const initialSuggestions = [
+            { text: "Explorá San Rafael", query: "lugares sugeridos" },
+            { text: "Reglas de buena convivencia", query: "reglamento" },
+            { text: "Asistencia por WhatsApp", query: "contacto" }
+        ];
+
+        const reglamentoSubCategories = [
+            { text: "Contraseñas de WiFi", query: "reglamento_wifi" },
+            { text: "¿Horarios de check-in/out?", query: "reglamento_horarios" },
+            { text: "¿El agua es potable?", query: "reglamento_agua" },
+            { text: "¿Y los ruidos molestos?", query: "reglamento_ruidos" },
+            { text: "Normas de la pileta", query: "reglamento_pileta" },
+            { text: "¿Se permiten visitas?", query: "reglamento_visitas" },
+            { text: "Prohibido fumar", query: "reglamento_fumar" },
+            { text: "Leer reglamento completo", query: "reglamento_completo" },
+            { text: "Volver al Menú Principal", query: "hola" }
+        ];
+
+        const suggestedPlacesSubCategories = [
+            { text: "Bares", query: "bares" },
+            { text: "Restaurantes", query: "restaurantes" },
+            { text: "Heladerías", query: "heladerias" },
+            { text: "Comida para llevar", query: "comida para llevar" },
+            { text: "Supermercados", query: "proveedurias y supermercados"},
+            { text: "Bodegas", query: "bodegas" },
+            { text: "Actividades al Aire Libre", query: "actividades al aire libre" },
+            { text: "Lugares Emblemáticos", query: "lugares emblematicos" },
+            { text: "Volver al Menú Principal", query: "hola" }
+        ];
+        
+        const defaultReturnToMenu = [{ text: "Volver al Menú Principal", query: "hola" }];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            function setVh() {
+                document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+            }
+            setVh();
+            window.addEventListener('resize', setVh);
+
+            const chatArea = document.getElementById('chatArea');
+            const userInput = document.getElementById('userInput');
+            const sendButton = document.getElementById('sendButton');
+            const suggestionButtonsContainer = document.getElementById('suggestionButtons');
+            const navItems = document.querySelectorAll('.nav-item');
+
+            function addMessage(htmlContent, sender, id = null, scrollToTop = false, extraClasses = []) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', sender, ...extraClasses);
+                if (id) messageElement.id = id;
+                messageElement.innerHTML = htmlContent;
+                chatArea.appendChild(messageElement);
+
+                setTimeout(() => { 
+                    if (scrollToTop) {
+                        messageElement.scrollIntoView({ block: 'start' });
+                    } else {
+                        chatArea.scrollTop = chatArea.scrollHeight;
+                    }
+                }, 0);
+            }
+
+            function displayAssistantResponseWithTyping(message, assistantResponseHtml, nextSuggestions, isPlaceList = false) {
+                userInput.value = '';
+                hideSuggestions();
+                const loadingMessageId = 'loading-message';
+                
+                addMessage('<div class="typing-indicator flex items-center space-x-1"><span class="dot dot-1"></span><span class="dot dot-2"></span><span class="dot dot-3"></span></div>', 'loading', loadingMessageId, false);
+
+                setTimeout(() => {
+                    const loadingElement = document.getElementById(loadingMessageId);
+                    if (loadingElement) loadingElement.remove();
+                    
+                    const shouldScrollToTop = isPlaceList || assistantResponseHtml.length > 400;
+
+                    addMessage(assistantResponseHtml, 'assistant', null, shouldScrollToTop, isPlaceList ? ['place-list-container'] : []);
+                    showSuggestions(nextSuggestions);
+                }, 1000);
+            }
+
+            function showSuggestions(suggestions) {
+                suggestionButtonsContainer.innerHTML = '';
+                suggestions.forEach(sugg => {
+                    const button = document.createElement('button');
+                    button.classList.add('suggestion-button');
+                    if (sugg.query === "hola") button.classList.add('main-menu-button');
+                    button.textContent = sugg.text;
+                    button.addEventListener('click', () => handleUserInput(sugg.query, true));
+                    suggestionButtonsContainer.appendChild(button);
+                });
+            }
+
+            function hideSuggestions() {
+                suggestionButtonsContainer.innerHTML = '';
+            }
+
+            function processMessage(message, isButtonQuery = false) {
+                const lowerCaseMessage = message.toLowerCase().trim();
+                let responseHtml = assistantResponses["default"];
+                let nextSuggestions = defaultReturnToMenu;
+                let isPlaceList = false;
+                let foundMatch = false;
+
+                if (assistantResponses[lowerCaseMessage]) {
+                    responseHtml = assistantResponses[lowerCaseMessage];
+                    if (lowerCaseMessage === "lugares sugeridos") nextSuggestions = suggestedPlacesSubCategories;
+                    else if (lowerCaseMessage === "reglamento") nextSuggestions = reglamentoSubCategories;
+                    else if (lowerCaseMessage === "hola") nextSuggestions = initialSuggestions;
+                    foundMatch = true;
+                } else if (placesData[lowerCaseMessage]) {
+                     isPlaceList = true; 
+                     foundMatch = lowerCaseMessage;
+                }
+
+                if (!foundMatch) {
+                    for (const key in topicKeywordMap) {
+                        if (topicKeywordMap[key].some(keyword => lowerCaseMessage.includes(keyword))) {
+                            if (placesData[key]) {
+                                isPlaceList = true;
+                                foundMatch = key;
+                            } else if (assistantResponses[key]) {
+                                responseHtml = assistantResponses[key];
+                                foundMatch = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if (isPlaceList) {
+                    const category = foundMatch;
+                    const places = placesData[category];
+                    
+                    places.forEach(p => {
+                        if (p.lat && p.lon) {
+                            const dist = calculateDistance(CABANAS_ALBERDI_LAT, CABANAS_ALBERDI_LON, p.lat, p.lon);
+                            p.distanciaNum = dist;
+                            p.distancia = dist < 1 ? `${(dist * 1000).toFixed(0)} m` : `${dist.toFixed(1)} km`;
+                        }
+                    });
+
+                    places.sort((a, b) => a.distanciaNum - b.distanciaNum);
+
+                    let html = `<p class="font-bold mb-3">Aquí tienes sugerencias de "${category.charAt(0).toUpperCase() + category.slice(1)}", ordenadas por cercanía:</p>`;
+                    const iconMap = {
+                        "bares": "fas fa-cocktail", "restaurantes": "fas fa-utensils", "heladerias": "fas fa-ice-cream",
+                        "comida para llevar": "fas fa-shopping-bag", "bodegas": "fas fa-wine-bottle", "actividades al aire libre": "fas fa-hiking",
+                        "proveedurias y supermercados": "fas fa-shopping-basket", "lugares emblematicos": "fas fa-landmark"
+                    };
+                    places.forEach(p => {
+                        html += generatePlaceHtml(p, iconMap[category] || 'fas fa-map-marker-alt');
+                    });
+                    responseHtml = html;
+                }
+                
+                displayAssistantResponseWithTyping(message, responseHtml, nextSuggestions, isPlaceList);
+            }
+
+            function handleUserInput(message, isButtonQuery = false) {
+                if (message.trim() === "") return;
+                addMessage(message, 'user', null, false);
+                userInput.value = '';
+                processMessage(message, isButtonQuery);
+            }
+
+            sendButton.addEventListener('click', () => handleUserInput(userInput.value, false));
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleUserInput(userInput.value, false);
+            });
+
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const id = e.currentTarget.id;
+                    const queryMap = {
+                        navProject: 'nuestro proyecto',
+                        navMap: 'mapa',
+                        navPlaces: 'lugares sugeridos',
+                        navWhatsapp: 'contacto'
+                    };
+                    if(queryMap[id]) handleUserInput(queryMap[id], true);
+                });
+            });
+
+            setTimeout(() => {
+                addMessage(assistantResponses["hola"], 'assistant', null, true);
+                showSuggestions(initialSuggestions);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
