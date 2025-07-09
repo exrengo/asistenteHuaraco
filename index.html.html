@@ -435,7 +435,7 @@
             </div>
             <div class="nav-item" id="navMap">
                 <i class="fas fa-map-marked-alt"></i>
-                <span>Mapa</span>
+                <span>Ubicación</span>
             </div>
             <div class="nav-item" id="navPlaces">
                 <i class="fas fa-map-marker-alt"></i>
@@ -450,8 +450,8 @@
 
     <script>
         // --- UBICACIÓN BASE Y FUNCIONES ---
-        const CABANAS_ALBERDI_LAT = -34.6261;
-        const CABANAS_ALBERDI_LON = -68.3735;
+        const CABANAS_ALBERDI_LAT = -34.621948;
+        const CABANAS_ALBERDI_LON = -68.373111;
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // Radio de la tierra en km
@@ -484,12 +484,13 @@
             return `<div class="rating"><span class="stars">${starsHtml}</span> <span>${rating}</span></div>`;
         }
 
-        function generatePlaceHtml(place, iconClass) {
+        function generatePlaceHtml(place, iconClass, category) {
             let extraInfo = '<div class="extra-info mt-2">';
             if (place.description) {
                 extraInfo += `<p>${place.description}</p>`;
             }
-            if (place.distancia) {
+            // --- LÓGICA CONDICIONAL PARA MOSTRAR DISTANCIA ---
+            if (category === 'proveedurias y supermercados' && place.distancia) {
                 extraInfo += `<p class="text-sm text-gray-600 font-semibold"><i class="fas fa-road fa-fw mr-2 text-gray-400"></i>A ${place.distancia}</p>`;
             }
             extraInfo += '</div>';
@@ -591,7 +592,7 @@
                     <li>No se permite el ingreso de visitas sin previo aviso.</li>
                 </ul>
             `,
-            "mapa": `<div class="p-2"><p>Serás redirigido al mapa del complejo.</p><meta http-equiv="refresh" content="2;url=https://www.google.com/maps/place/Caba%C3%B1as+Alberdi/@-34.6477631,-68.2694533,16z/data=!4m6!3m5!1s0x9679a918913e8739:0x944503ac6b38ab7a!8m2!3d-34.6448364!4d-68.2735595!16s%2Fg%2F11pyydk6vx?entry=ttu&g_ep=EgoyMDI1MDYzMC4wIKXMDSoASAFQAw%3D%3D" /></div>`,
+            "mapa": `<div class="p-2"><p>Serás redirigido a la ubicación del complejo en Google Maps.</p><meta http-equiv="refresh" content="2;url=https://www.google.com/maps?q=${CABANAS_ALBERDI_LAT},${CABANAS_ALBERDI_LON}" /></div>`,
             "contacto": `
                 <p>¡Claro! ¿Con quién deseas comunicarte?</p>
                 <a href='https://wa.me/5492604086903' target='_blank' class='whatsapp-contact whatsapp-daiana'>
@@ -830,7 +831,7 @@
                         "proveedurias y supermercados": "fas fa-shopping-basket", "lugares emblematicos": "fas fa-landmark"
                     };
                     places.forEach(p => {
-                        html += generatePlaceHtml(p, iconMap[category] || 'fas fa-map-marker-alt');
+                        html += generatePlaceHtml(p, iconMap[category] || 'fas fa-map-marker-alt', category);
                     });
                     responseHtml = html;
                 }
