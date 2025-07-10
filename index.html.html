@@ -450,8 +450,8 @@
 
     <script>
         // --- UBICACIÓN BASE Y FUNCIONES ---
-        const CABANAS_ALBERDI_LAT = -34.621948;
-        const CABANAS_ALBERDI_LON = -68.373111;
+        const CABANAS_ALBERDI_LAT = -34.626125;
+        const CABANAS_ALBERDI_LON = -68.373625;
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // Radio de la tierra en km
@@ -466,7 +466,7 @@
         }
 
         function getGoogleMapsLink(name) {
-             return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(name + ", San Rafael, Mendoza");
+             return "http://googleusercontent.com/maps.google.com/7" + encodeURIComponent(name + ", San Rafael, Mendoza");
         }
         
         function formatRating(rating) {
@@ -489,7 +489,6 @@
             if (place.description) {
                 extraInfo += `<p>${place.description}</p>`;
             }
-            // --- LÓGICA CONDICIONAL PARA MOSTRAR DISTANCIA ---
             if (category === 'proveedurias y supermercados' && place.distancia) {
                 extraInfo += `<p class="text-sm text-gray-600 font-semibold"><i class="fas fa-road fa-fw mr-2 text-gray-400"></i>A ${place.distancia}</p>`;
             }
@@ -592,7 +591,7 @@
                     <li>No se permite el ingreso de visitas sin previo aviso.</li>
                 </ul>
             `,
-            "mapa": `<div class="p-2"><p>Serás redirigido a la ubicación del complejo en Google Maps.</p><meta http-equiv="refresh" content="2;url=https://www.google.com/maps?q=${CABANAS_ALBERDI_LAT},${CABANAS_ALBERDI_LON}" /></div>`,
+            "mapa": `<div class="p-2"><p>Serás redirigido a la ubicación del complejo en Google Maps.</p><meta http-equiv="refresh" content="2;url=https://www.google.com/maps/search/?api=1&query=Caba%C3%B1as+Alberdi%2C+9P3G%2BGH%2C+San+Rafael%2C+Mendoza" /></div>`,
             "contacto": `
                 <p>¡Claro! ¿Con quién deseas comunicarte?</p>
                 <a href='https://wa.me/5492604086903' target='_blank' class='whatsapp-contact whatsapp-daiana'>
@@ -822,9 +821,11 @@
                         }
                     });
 
-                    places.sort((a, b) => a.distanciaNum - b.distanciaNum);
+                    if (category === 'proveedurias y supermercados') {
+                        places.sort((a, b) => a.distanciaNum - b.distanciaNum);
+                    }
 
-                    let html = `<p class="font-bold mb-3">Aquí tienes sugerencias de "${category.charAt(0).toUpperCase() + category.slice(1)}", ordenadas por cercanía:</p>`;
+                    let html = `<p class="font-bold mb-3">Aquí tienes sugerencias de "${category.charAt(0).toUpperCase() + category.slice(1)}":</p>`;
                     const iconMap = {
                         "bares": "fas fa-cocktail", "restaurantes": "fas fa-utensils", "heladerias": "fas fa-ice-cream",
                         "comida para llevar": "fas fa-shopping-bag", "bodegas": "fas fa-wine-bottle", "actividades al aire libre": "fas fa-hiking",
